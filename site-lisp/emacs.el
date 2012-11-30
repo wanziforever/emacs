@@ -405,7 +405,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
   ;; If there is more than one, they won't work right.
  '(column-number-mode t)
  '(display-time-mode t)
- '(menu-bar-mode nil)
+ '(menu-bar-mode t)
  '(scroll-bar-mode (quote right))
  '(show-paren-mode t)
  '(tool-bar-mode nil)
@@ -623,11 +623,11 @@ If ARG is non-numeric, copy line from beginning of the current line."
 ;;for non-window base terminal
 (global-set-key (kbd "C-c d") 'toggle-window-dedicated)
 
-(require 'my-deep-blue)
-(my-deep-blue)
+;;(require 'my-deep-blue)
+;;(my-deep-blue)
 
-;;(require 'my-light-blue)
-;;(my-light-blue)
+(require 'my-light-blue)
+(my-light-blue)
 
 (server-start)
 
