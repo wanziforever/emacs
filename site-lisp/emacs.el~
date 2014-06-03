@@ -228,9 +228,9 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (defun set-offset (&optional arg)
   (interactive "P")
   (setq indent (read-from-minibuffer "offset: "))
-  (setq c-basic-offset (string-to-number indent))
-  (remove-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
-  (add-hook 'c-mode-common-hook (lambda () (linux-c-mode (string-to-number indent))))
+  ;;(setq c-basic-offset (string-to-number indent))
+  ;;(remove-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
+  ;;(add-hook 'c-mode-common-hook (lambda () (linux-c-mode (string-to-number indent))))
   )
 
 

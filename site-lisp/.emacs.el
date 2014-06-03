@@ -14,6 +14,8 @@
   ;;(set-face-font 'default "-unknown-dejavu sans mono-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
 ;;(set-face-font 'default "-outline-YaHei Consolas Hybrid-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1"))
 
+;;(fringe-mode 0)
+;;(set-fringe-mode 0)
 (setq default-major-mode 'text-mode)
 (column-number-mode t)
 (add-to-list 'auto-mode-alist '("\\.\\([pP][Llm]\\|al\\)\\'" . cperl-mode))
@@ -27,6 +29,7 @@
             interpreter-mode-alist))
 
 (setq default-fill-column 60)
+(setq make-backup-files nil)
 
 ;;//////////////////////////////////////////////////////////
 (put 'set-goal-column 'disabled nil)    ; enable column positioning
@@ -57,10 +60,11 @@
 
 (add-hook 'find-file-hook 'common-hook)
 
-;;(require 'linum)
-;;(global-linum-mode)
-;;(require 'linum-off)
-;;(setq linum-format "%4d|")
+(require 'linum)
+(global-linum-mode)
+(require 'linum-off)
+(setq linum-format "%4d ")
+;;(setq linum-format "%4d \u2502 ")
 
 ;;from effective emacs
 (global-set-key (kbd "C-x C-m") 'execute-extended-command)
@@ -225,6 +229,30 @@ If ARG is non-numeric, copy line from beginning of the current line."
       ;; no ARG, save current line from first non-white
       (huangq-save-one-line t))))
 
+(c-add-style "mycodingstyle"
+             '((c-comment-only-line-offset . 0)
+
+               (c-hanging-braces-alist . ((substatement-open before
+                                                             after)))
+               (c-offsets-alist . ((topmost-intro        . 0)
+                                   (topmost-intro-cont   . 0)
+                                   (substatement         . 3)
+                                   (substatement-open    . 0)
+                                   (statement-case-open  . 3)
+                                   (statement-cont       . 3)
+                                   (access-label         . -3)
+                                   (inclass              . 2)
+                                   (inline-open          . 3)
+                                   (innamespace          . 0)
+                                   ))))
+
+;; c/c++ mode
+(add-hook 'c-mode-common-hook
+          '(lambda()
+             (c-set-style "mycodingstyle")
+             (setq tab-width 2)
+             (setq c-basic-offset tab-width)))
+
 (defun set-offset (&optional arg)
   (interactive "P")
   (setq indent (read-from-minibuffer "offset: "))
@@ -246,9 +274,9 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (setq tab-stop-list nil)
 (setq indent-tabs-mode nil)
 
-; Warn in C for while();, if(x=0), ...
+                                        ; Warn in C for while();, if(x=0), ...
 (global-cwarn-mode 1)
-; no electric mode in c
+                                        ; no electric mode in c
 (c-toggle-electric-state -1)
 ;;
 (global-set-key (kbd "<f12> c") 'calendar)
@@ -344,7 +372,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (defun linux-java-mode()
   (interactive)
   (which-function-mode t)
-  ;;(linum-mode t)
+  (linum-mode t)
   (view-mode t)
   )
 
@@ -355,13 +383,13 @@ If ARG is non-numeric, copy line from beginning of the current line."
   (setq cperl-indent-level 2)
   (setq cperl-brace-offset -2)
   (setq cperl-label-offset 0)
-  ;;(linum-mode t)
+  (linum-mode t)
   (view-mode t)
   )
 
 (defun linux-python-mode()
   (which-function-mode t)
-  ;;(linum-mode t)
+  (linum-mode t)
   (view-mode t)
   (python-guess-indent nil)
   (python-indent 2)
@@ -376,7 +404,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 
 (defun GNUmakefile-mode()
-  ;;(linum-mode t)
+  (linum-mode t)
   (view-mode t)
   (define-key GNUmakefile-mode-map [return] 'newline-and-indent)
   (define-key GNUmakefile-mode-map "\C-m" 'newline-and-indent)
@@ -435,12 +463,16 @@ If ARG is non-numeric, copy line from beginning of the current line."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(column-number-mode t)
+ '(custom-safe-themes (quote ("1ac9a474d289e6a44894d1b484b3aa5eb345cea6ed6f32ec5214c797ac7ddf23" default)))
  '(delete-selection-mode nil)
  '(display-time-mode t)
+ '(font-use-system-font t)
+ '(mark-even-if-inactive t)
+ '(menu-bar-mode nil)
  '(scroll-bar-mode nil)
  '(show-paren-mode t)
  '(tool-bar-mode nil)
- '(transient-mark-mode nil)
+ '(transient-mark-mode (quote (only)))
  '(truncate-partial-width-windows nil))
 
 (require 'imenu)
@@ -563,7 +595,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
 ;;
 
 (add-hook 'c-mode-common-hook 
-		  (lambda ()
+          (lambda ()
             ;;			(define-key c++-mode-map [(control c) t]  'imenu-tree-window-weight)
             (define-key c++-mode-map "." 'gtags-find-tag-from-here)
             (define-key c++-mode-map ","  'gtags-pop-stack)
@@ -654,17 +686,26 @@ If ARG is non-numeric, copy line from beginning of the current line."
 ;;for non-window base terminal
 (global-set-key (kbd "C-c d") 'toggle-window-dedicated)
 
-;;(require 'my-deep-blue)
-;;(my-deep-blue)
+(require 'my-deep-blue)
+(my-deep-blue)
+
+;;(require 'my-simple)
+;;(my-simple)
 
 ;;(require 'my-light-blue)
 ;;(my-light-blue)
 
-(require 'my-deep-blue3)
-(my-deep-blue3)
+;;(require 'my-deep-blue3)
+;;(my-deep-blue3)
 
 ;;(require 'color-theme-mnmlst)
 ;;(color-theme-mnmlst)
+
+;;(require 'my-sublime)
+;;(my-sublime)
+
+;;(require 'monokai-theme)
+;;(load-theme 'monokai)
 
 (server-start)
 
@@ -676,7 +717,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (setq browse-kill-ring-display-duplicates nil)
 (add-hook 'browse-kill-ring-hook 'browse-kill-ring-my-keys)
 (defun browse-kill-ring-my-keys ()
-  (define-key browse-kill-ring-mode-map (kbd "RET") 'browse-kill-ring-insert-and-quit-rdonly)
+  (define-key browse-kill-ring-mode-map (kbd "RET") 'browse-kill-ring-insert-and-quit)
   (define-key browse-kill-ring-mode-map "<" 'beginning-of-buffer)
   (define-key browse-kill-ring-mode-map ">" 'end-of-buffer)
   (define-key browse-kill-ring-mode-map "j" 'next-line)
@@ -686,7 +727,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
   (define-key browse-kill-ring-mode-map (kbd "SPC") 'scroll-up)
   (define-key browse-kill-ring-mode-map (kbd "U") 'scroll-down)
   (define-key browse-kill-ring-mode-map "u" 'View-scroll-half-page-backward)
-    (define-key browse-kill-ring-mode-map "o" 'other-window))
+  (define-key browse-kill-ring-mode-map "o" 'other-window))
 
 
 
@@ -863,12 +904,6 @@ If ARG is non-numeric, copy line from beginning of the current line."
 ;;                            (cons "->" '(ac-source-semantic)))  
 ;;               (add-to-list 'ac-sources 'ac-source-gtags)))  
 ;;  )
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((t (:family "DejaVu Sans Mono" :foundry "unknown" :slant normal :weight normal :height 83 :width normal)))))
 ;;(require 'powerline)
 ;;(require 'sml-modeline)
 ;;(sml-modeline-mode 1)
@@ -883,3 +918,17 @@ If ARG is non-numeric, copy line from beginning of the current line."
 ;;  )
 ;;
 ;;(toggle-fullscreen)
+
+;;(custom-set-faces
+;; ;; custom-set-faces was added by Custom.
+;; ;; If you edit it by hand, you could mess it up, so be careful.
+;; ;; Your init file should contain only one such instance.
+;; ;; If there is more than one, they won't work right.
+;; '(default ((t (:background "#EEEEEC" :family "Monaco" :foundry "apple" :slant normal :weight normal :height 90 :width normal))))
+;; '(linum ((t (:inherit (shadow default) :foreground "light slate blue")))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "DejaVu Sans Mono" :foundry "unknown" :slant normal :weight normal :height 90 :width normal)))))
