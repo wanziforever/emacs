@@ -1,5 +1,14 @@
 (setq inhibit-startup-message t)
 (add-to-list 'load-path "~/share/emacs/site-lisp/")
+(setq exec-path (cons "/usr/local/bin" exec-path))
+
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")
+			 ("org" . "https://mirrors.tuna.tsinghua.edu.cn/elpa/org/")))
+(package-initialize)
+
+;;(setq load-path (cons "/usr/local/bin" load-path))
 ;;(setq shell-file-name "ksh")
 
 ;;(setenv "SHELL" shell-file-name)
@@ -7,26 +16,44 @@
 ;;i think the view-mode is better than the read-only, mistake, but work well :)
 (define-key ctl-x-map "\C-q" 'view-mode)
 
-;;(when window-system
-;;(set-face-font 'default "-outline-Consolata-normal-r-normal-normal-15-112-96-96-c-*-iso8859-1")
-;;  (set-face-font 'default "-unknown-Inconsolata-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1"))
-  ;;(set-face-font 'default "-unknown-anonymous-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
-  ;;(set-face-font 'default "-unknown-dejavu sans mono-normal-normal-normal-*-12-*-*-*-m-0-iso10646-1"))
-;;(set-face-font 'default "-outline-YaHei Consolas Hybrid-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1"))
-
 (setq default-major-mode 'text-mode)
 (column-number-mode t)
 (add-to-list 'auto-mode-alist '("\\.\\([pP][Llm]\\|al\\)\\'" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("perl" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("perl5" . cperl-mode))
 (add-to-list 'interpreter-mode-alist '("miniperl" . cperl-mode))
+(require 'web-mode)
+(require 'typescript-mode)
+(require 'rjsx-mode)
+
+(autoload 'go-mode "go-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+
+(require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+
 (setq auto-mode-alist
       (cons '("\\.py$" . python-mode) auto-mode-alist))
 (setq interpreter-mode-alist
       (cons '("python" . python-mode)
             interpreter-mode-alist))
 
+(use-package lsp-mode
+  :hook ((python-mode . lsp))
+  :commands lsp)
+
+(use-package lsp-ui
+  :commands lsp-ui-mode)
+
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda () (require 'lsp-pyright) (lsp))))
+
+
 (setq default-fill-column 60)
+(setq make-backup-files nil)
+
+(setq electric-pair-preserve-balance nil)
 
 ;;//////////////////////////////////////////////////////////
 (put 'set-goal-column 'disabled nil)    ; enable column positioning
@@ -35,11 +62,26 @@
 ;; set window title
 (setq frame-title-format '("" "%b @ %f"))
 
+(setq find-name-arg "-iname") ;; ignore find-name-dired case
+(set-default 'case-fold-search t)
+;;(setq ido-case-fold t)
+
 ;; set smooth scroll
 (setq scroll-step 1 scroll-conservatively 10000)
 ;;//////////////////////////////////////////////////////////
 
-(autoload 'python-mode "python-mode" "Python editing mode." t)
+;(autoload 'python-mode "python-mode" "Python editing mode." t)
+;(autoload 'jedi:setup "jedi" nil t)
+
+(require 'go-mode)
+;;markdown mode installation
+(autoload 'markdown-mode "markdown-mode"
+  "Major mode for editing Markdown files" t)
+
+(autoload 'gfm-mode "gfm-mode"
+  "Major mode for editing GitHub Flavored Markdown files" t)
+(add-to-list 'auto-mode-alist '("README\\.md\\'" . gfm-mode))
+
 
 (define-key isearch-mode-map [backspace] 'isearch-delete-char)
 ;;(define-key isearch-mode-map (kbd "") 'isearch-delete-char)
@@ -49,13 +91,18 @@
 (mouse-avoidance-mode 'animate)
 
 ;;tak effect when press C-k b
-(ido-mode t)
+;;(ido-mode t)
 
 (defun common-hook()
   (view-mode t)
   )
 
 (add-hook 'find-file-hook 'common-hook)
+
+(setq term-buffer-maximum-size 10000) ;; 保留 10000 行历史记录
+(add-hook 'term-mode-hook
+          (lambda ()
+            (setq-local scroll-up-aggressively 0.01))) ;; 平滑滚动
 
 ;;(require 'linum)
 ;;(global-linum-mode)
@@ -74,16 +121,30 @@
 (global-set-key (kbd "C-c M-d") 'downcase-word)
 (global-set-key (kbd "C-c M-c") 'capitalize-word)
 (global-set-key (kbd "C-_") 'undo)
+(global-set-key (kbd "C-x SPC") 'set-mark-command)
+(global-set-key (kbd "C-c f g") 'find-grep)
+
+;; 绑定 multi-occur-in-matching-buffers 到 C-c o
+(global-set-key (kbd "C-c o") 'multi-occur-in-matching-buffers)
+
+
+;; tags find tag
+(setq gtags-ignore-case t)
+(setq completion-ignore-case t)
+(setq read-file-name-completion-ignore-case t)
+;;(ggtags-mode 1)
+(global-set-key (kbd "C-c s g") 'ggtags-find-tag)
+;;(global-set-key (kbd "C-c s f") 'gtags-find-file)
+
+(require 'xref)
+(defvar xref--marker-ring nil
+  "Ring of markers for Xref-based navigation.")
 
 (global-set-key (kbd "[1;3C") 'forward-word)
 (global-set-key (kbd "[1;3D") 'backward-word)
 (global-set-key (kbd "[4~") 'move-end-of-line)
-;;(global-set-key (kbd "") 'delete-backward-char)
 (global-set-key (kbd "C-h") 'delete-backward-char)
 (global-set-key [?\C-x ?h] 'help-command)
-;; overrides mark-whole-buffer`
-
-;;(global-set-key [(return)] 'newline-and-indent)
 
 (global-set-key (kbd "M-<SPC>") 'set-mark-command)
 (global-set-key (kbd "C-x f") 'find-file-at-point)
@@ -101,34 +162,11 @@
 (global-set-key (kbd "C-3") 'split-window-horizontally)
 (global-set-key (kbd "C-0") 'delete-window)
 
-;;;; all the following set key can be ignored, please go to edit the share/emacs/23.1/lisp/term/xterm.el for any special key
-;;;;for windows TTY .example PUTTY
-;;(global-set-key "[\B" 'windmove-down)
-;;(global-set-key "[A" 'windmove-up)
-;;(global-set-key "[C" 'windmove-right)
-;;(global-set-key "[D" 'windmove-left)
-;;;;
-;;;;for solaris TTY like xterm under vnc
-;;;;also can use C-M-v or C-M-S-v 
-;;(global-set-key "[1;5B" 'windmove-down)
-;;(global-set-key "[1;5A" 'windmove-up)
-;;(global-set-key "[1;5C" 'windmove-right)
-;;(global-set-key "[1;5D" 'windmove-left)
-;;(global-set-key "[6;3~" 'scroll-other-window)
-;;(global-set-key "[5;3~" 'scroll-other-window-down)
-;;
-;;(global-set-key "OB" 'windmove-down)
-;;(global-set-key "OA" 'windmove-up)
-;;(global-set-key "OD" 'windmove-left)
-;;(global-set-key "OC" 'windmove-right)
-;;(global-set-key (kbd "M-g")  'goto-line)
-;;;;used for EMACS 23
-
 (global-set-key (kbd "M-^")  'enlarge-window)
 (global-set-key (kbd "M-)")  'enlarge-window-horizontally)
 (global-set-key (kbd "M-(")  'shrink-window-horizontally)
 (global-set-key (kbd "M-\\") 'indent-region)
-(global-set-key (kbd "M-t") 'toggle-read-only)
+(global-set-key (kbd "M-t") 'view-mode)
 
 ;;tramp
 ;;(require tramp)
@@ -163,30 +201,9 @@
     (scroll-down)
     ))
 
-;;(setq semanticdb-project-roots (list "/home/denny/code/radius_tool/src"))
-
-(defadvice show-paren-function (after show-matching-paren-offscreen
-                                      activate)
-  "If the matching paren is offscreen, show the matching line in the
-echo area. Has no effect if the character before point is not of
-the syntax class ')'."
-  (interactive)
-  (let ((matching-text nil))
-    ;; Only call `blink-matching-open' if the character before point
-    ;; is a close parentheses type character. Otherwise, there's not
-    ;; really any point, and `blink-matching-open' would just echo
-    ;; "Mismatched parentheses", which gets really annoying.
-    (if (char-equal (char-syntax (char-before (point))) ?\))
-        (setq matching-text (blink-matching-open)))
-    (if (not (null matching-text))
-        (message matching-text))))
-
-
 (setq scroll-step 1
       scroll-margin 1
       scroll-conservatively 10000)
-
-;;(setq track-eol t)
 
 ;;Use ALT + W key to copy one line, or actived mark region
 (global-set-key (kbd "M-W") 'huangq-save-line-dwim)
@@ -237,7 +254,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
                                    (statement-case-open  . 3)
                                    (statement-cont       . 3)
                                    (access-label         . -3)
-                                   (inclass              . 3)
+                                   (inclass              . 2)
                                    (inline-open          . 3)
                                    (innamespace          . 0)
                                    ))))
@@ -247,15 +264,16 @@ If ARG is non-numeric, copy line from beginning of the current line."
           '(lambda()
              (c-set-style "mycodingstyle")
              (setq tab-width 2)
+             (setq indent-tabs-mode nil)
              (setq c-basic-offset tab-width)))
 
-(defun set-offset (&optional arg)
-  (interactive "P")
-  (setq indent (read-from-minibuffer "offset: "))
-  (setq c-basic-offset (string-to-number indent))
-  (remove-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
-  (add-hook 'c-mode-common-hook (lambda () (linux-c-mode (string-to-number indent))))
-  )
+;;(defun set-offset (&optional arg)
+;;  (interactive "P")
+;;  (setq indent (read-from-minibuffer "offset: "))
+;;  (setq c-basic-offset (string-to-number indent))
+;;  (remove-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
+;;  (add-hook 'c-mode-common-hook (lambda () (linux-c-mode (string-to-number indent))))
+;;  )
 
 
 (setq x-select-enable-clipboard t)
@@ -265,25 +283,21 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 ;;disable tag, and set one tab to 4 blank
 (setq-default indent-tabs-mode nil)
-;;(setq default-tab-width 2)
-;;(setq tab-width 2)
+;;(setq-default tab-width 4)
+(setq indent-line-function 'insert-tab)
 (setq tab-stop-list nil)
-(setq indent-tabs-mode nil)
 
-                                        ; Warn in C for while();, if(x=0), ...
-(global-cwarn-mode 1)
-                                        ; no electric mode in c
+;;(global-cwarn-mode 1)
+
 (c-toggle-electric-state -1)
-;;
+
 (global-set-key (kbd "<f12> c") 'calendar)
-;;(global-set-key (kbd "<f5>") 'kill-buffer-and-window)
 
 (require 'ibuffer)
-;;(global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'ibuffer-other-window)
 ;;buffer switching ----------------------------
 ;;better C-x b  (ido does the same for C-x C-f)
-(iswitchb-mode t)
+;;(iswitchb-mode t)
 (icomplete-mode t)       ;;minibuffer compeltion/suggestions
 (eval-when-compile
   (require 'cl))
@@ -316,29 +330,29 @@ If ARG is non-numeric, copy line from beginning of the current line."
       (message (substring-no-properties (current-kill 0))))))
 (global-set-key (kbd "C-c w") 'huangq-save-word-at-point)
 
-
-;;(require 'xcscope)
-;;(setq cscope-do-not-update-database t)
-
-;;(setq-default make-backup-files nil)
-
 (setq calendar-latitude 39.90)
 (setq calendar-longitude 116.30)
 (setq calendar-location-name "Beijing")
 ;;(setq mark-diary-entries-in-calendar t)
 
-(add-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
+;;(add-hook 'c-mode-common-hook (lambda () (linux-c-mode 2)))
 (add-hook 'java-mode-hook 'linux-java-mode)
 (add-hook 'cperl-mode-hook 'linux-cperl-mode)
-(add-hook 'python-mode-hook 'linux-python-mode)
+;(add-hook 'python-mode-hook 'linux-python-mode)
+;(add-hook 'python-mode-hook 'jedi:setup)
+;(setq jedi:complete-on-dot t)
 (add-hook 'GNUmakefile-mode-hook 'GNUmakefile-mode)
 ;;(add-hook 'c-mode-hook 'hs-minor-mode)
-(add-hook 'c++-mode-hook 'hs-minor-mode)
+;;(add-hook 'c++-mode-hook 'hs-minor-mode)
 ;;(autoload 'gtags-mode "gtags" "" t)
 (require 'gtags)
-(setq c-mode-hook
-      '(lambda ()
-         (gtags-mode 1)))
+;;(setq c-mode-hook
+;;      '(lambda ()
+;;         (setq indent-tabs-mode nil)
+;;         (gtags-mode 1)))
+(add-hook 'c-mode-hook
+          (function (lambda () (setq indent-tabs-mode nil))))
+
 
 (setq gtags-mode-hook
       '(lambda()
@@ -346,52 +360,29 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 (require 'gtags)
 (defun linux-c-mode (arg)
-  (setq indent 2)
-  (if arg
-      (setq indent arg))
+;;  (setq indent 2)
+  ;(if arg
+  ;    (setq indent arg))
   (define-key c-mode-map [return] 'newline-and-indent)
   (define-key c-mode-map (kbd "M-j") 'windmove-down)
+  (define-key c++-mode-map (kbd "M-j") 'windmove-down)
   (define-key c++-mode-map [F9] 'compile)
   (interactive)
   ;;(c-set-style "K&R")
   (c-set-style "bsd")
   (c-toggle-auto-state)
   (c-toggle-hungry-state)
-  (setq c-basic-offset indent)
+  (indent-tabs-mode nil)
+  ;(setq c-basic-offset indent)
   (which-function-mode t)
   (c-toggle-auto-newline nil)
   (view-mode t)
   )
 
-(add-hook 'c-mode-common-hook 'hs-minor-mode)
+(which-function-mode 1)
+;;;;(add-hook 'c-mode-common-hook 'hs-minor-mode)
 
-(defun linux-java-mode()
-  (interactive)
-  (which-function-mode t)
-  ;;(linum-mode t)
-  (view-mode t)
-  )
-
-(defun linux-cperl-mode()
-  (define-key cperl-mode-map [return] 'newline-and-indent)
-  (interactive)
-  (which-function-mode t)
-  (setq cperl-indent-level 2)
-  (setq cperl-brace-offset -2)
-  (setq cperl-label-offset 0)
-  ;;(linum-mode t)
-  (view-mode t)
-  )
-
-(defun linux-python-mode()
-  (which-function-mode t)
-  ;;(linum-mode t)
-  (view-mode t)
-  (python-guess-indent nil)
-  (python-indent 2)
-  )
-
-(setq-default indent-tabs-mode nil)
+;;(setq-default indent-tabs-mode nil)
 ;; Python Hook
 (add-hook 'python-mode-hook
           (function (lambda ()
@@ -408,33 +399,6 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 (global-set-key "\C-m" 'reindent-then-newline-and-indent)
 
-(defun m-nxml-mode-hook ()
-  "key definitions for nxml mode"
-  (interactive)
-  (set-variable 'fill-column 99)
-                                        ; nxml key bindings consistent with C-b, C-f, C-p, C-n, M-b, M-f, M-p, M-n
-  (define-key nxml-mode-map "\C-of" 'nxml-forward-balanced-item)     ; f for forward
-  (define-key nxml-mode-map "\C-ob" 'nxml-backward-balanced-item)    ; b for backward
-  (define-key nxml-mode-map "\C-op" 'nxml-backward-element)   ; p consistent with C-p
-  (define-key nxml-mode-map "\C-on" 'nxml-forward-element)  ;
-  (define-key nxml-mode-map "\M-of" 'nxml-forward-element)     ; f for forward,
-  (define-key nxml-mode-map "\M-ob" 'nxml-backward-element)    ; b for backward
-  (define-key nxml-mode-map "\M-op" 'nxml-backward-paragraph)   ; p consistent with M-p
-  (define-key nxml-mode-map "\M-on" 'nxml-forward-paragraph)  ;
-                                        ;(define-key nxml-mode-map "\M-ou" 'nxml-backward-up-element) ; u for up
-                                        ;(define-key nxml-mode-map "\M-od" 'nxml-down-element)        ; d for down
-  (define-key nxml-mode-map "\M-ok" 'nxml-kill-element)        ; d for down
-
-  (define-key nxml-mode-map [M-insert] 'nxml-copy-tag-contents)
-  (define-key nxml-mode-map "\C-xw" 'nxml-kill-tag-contents)
-
-  (define-key nxml-mode-map "\C-cv" 'browse-url-of-buffer) ; should be consistent with the shortcut in the html-mode
-  (set-variable 'tab-width 2)
-
-  (message "Defined extra key-bindings for nxml-mode")
-  )
-(add-hook 'nxml-mode-hook 'm-nxml-mode-hook)
-
 (require 'wcy-swbuff)
 ;; then you can use <C-tab> and <C-S-kp-tab> to switch buffer.
 (global-set-key (kbd "C-M-w") 'wcy-switch-buffer-forward)
@@ -448,8 +412,6 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 (global-set-key (kbd "C-x h") 'beginning-of-defun)
 (global-set-key (kbd "C-x e") 'end-of-defun)
-(global-set-key (kbd "C-c f") 'forward-sexp)
-(global-set-key (kbd "C-c b") 'backward-sexp)
 
 ;;(add-hook 'c-mode-common-hook 'highlight-changes-mode)
 
@@ -461,41 +423,24 @@ If ARG is non-numeric, copy line from beginning of the current line."
  '(column-number-mode t)
  '(delete-selection-mode nil)
  '(display-time-mode t)
+ '(ignored-local-variable-values '((c-offsets-alist . 2)))
+ '(js-indent-level 2)
  '(mark-even-if-inactive t)
+ '(menu-bar-mode nil)
+ '(package-selected-packages
+   '(lsp-pyright consult clang-format markdown-mode 0xc doom-themes smart-mode-line 0blayout doom-modeline magit ggtags projectile find-file-in-project orderless vertico))
  '(scroll-bar-mode nil)
- '(show-paren-mode t)
+ '(show-paren-when-point-inside-paren t)
  '(tool-bar-mode nil)
  '(transient-mark-mode nil)
  '(truncate-partial-width-windows nil))
 
-(require 'imenu)
-;;(require 'ido)
-(defun imenu--completion-buffer (index-alist &optional prompt)
-  ;; Create a list for this buffer only when needed.
-  (let ((name (thing-at-point 'symbol))
-        choice
-        (prepared-index-alist
-         (if (not imenu-space-replacement) index-alist
-           (mapcar
-            (lambda (item)
-              (cons (subst-char-in-string ?\s (aref imenu-space-replacement 0)
-                                          (car item))
-                    (cdr item)))
-            index-alist))))
-    (when (stringp name)
-      (setq name (or (imenu-find-default name prepared-index-alist) name)))
-    (setq name (ido-completing-read
-                "Index item: "
-                (mapcar 'car prepared-index-alist)
-                nil t nil 'imenu--history-list
-                (and name (imenu--in-alist name prepared-index-alist) name)))
-    (when (stringp name)
-      (setq choice (assoc name prepared-index-alist))
-      (if (imenu--subalist-p choice)
-          (imenu--completion-buffer (cdr choice) prompt)
-        choice))))
 
-(global-set-key (kbd "C-c i") 'imenu)
+(defvar match-paren--idle-timer nil)
+(defvar match-paren--delay 0.5)
+(setq match-paren--idle-timer (run-with-idle-timer match-paren--delay t #'blink-matching-open))
+
+(global-set-key (kbd "C-c i") #'consult-imenu)
 
 
 ;; The following lines are always needed. Choose your own keys.
@@ -526,94 +471,27 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (add-hook 'org-mode-hook 'turn-on-font-lock)
 
 (setq org-log-done 'time)
-;;(setq org-log-done 'note)
-
-;;Include Emacs diary entries into Org-mode agenda with:
-;;(setq org-agenda-include-diary t)
-;;(display-time)
-;;(add-hook 'diary-hook 'appt-make-list)
-;;(diary 0)
 
 (setq org-todo-keywords '("TODO" "STARTED" "WAITING" "DONE"))
-
-;;;; keymap in cscope result buffer
-;;(add-hook
-;; 'cscope-list-entry-hook
-;; (lambda ()
-;;   (sucha-cscope-set-list-entry-window-height 11) ;; 11, height 
-;;   (define-key cscope-list-entry-keymap "*" 'sucha-cscope-close-window-and-pop-mark)
-;;   (define-key cscope-list-entry-keymap (kbd "C-*") 'sucha-cscope-close-window-and-pop-mark)
-;;   (define-key cscope-list-entry-keymap (kbd "") 'cscope-select-entry-other-window)
-;;   (define-key cscope-list-entry-keymap (kbd "j") 'next-line)
-;;   (define-key cscope-list-entry-keymap (kbd "k") 'previous-line)
-;;   (define-key cscope-list-entry-keymap (kbd "q") 'kill-buffer-and-window)
-;;   ))
-;;
-;;(defun sucha-cscope-set-list-entry-window-height (wanted-height)
-;;  "set cscope-list-entry-window height."
-;;  (interactive)
-;;  (shrink-window (- (window-height) wanted-height))
-;;  (recenter 1))
-;;
-;;(defun sucha-cscope-close-window-and-pop-mark ()
-;;  "close cscope-list-entry-window and pop-mark. only 
-;;   use in cscope-list-entry-mode."
-;;  (interactive)
-;;  (other-window 1)
-;;  (delete-other-windows)
-;;  (cscope-pop-mark)
-;;  (recenter))
-;;(add-hook 'c-mode-common-hook 
-;;		  (lambda ()
-;;;;			(define-key c++-mode-map [(control c) t]  'imenu-tree-window-weight)
-;;            (define-key c++-mode-map "." 'cscope-find-global-definition-no-prompting)
-;;            (define-key c++-mode-map ","  'cscope-pop-mark)
-;;;;            (define-key c++-mode-map "n"  'cscope-next-symbol)
-;;;;            (define-key c++-mode-map "p"  'cscope-prev-symbol)
-;;			(define-key c++-mode-map (kbd "C-c n") 'ecb-nav-goto-next)
-;;			(define-key c++-mode-map (kbd "C-c p") 'ecb-nav-goto-previous)
-;;;;			(define-key c-mode-map [(control c) t]  'imenu-tree-window-weight)
-;;            (define-key c-mode-map "." 'cscope-find-global-definition-no-prompting)
-;;            (define-key c-mode-map ","  'cscope-pop-mark)
-;;            (define-key c-mode-map "n"  'cscope-next-symbol)
-;;            (define-key c-mode-map "p"  'cscope-prev-symbol)
-;;			(define-key c-mode-map (kbd "C-c n")  'ecb-nav-goto-next)
-;;			(define-key c-mode-map (kbd "C-c p")  'ecb-nav-goto-previous)
-;;;;			(define-key c++-mode-map [(control c) t]  'imenu-tree-window-weight)
-;;            (define-key java-mode-map "." 'cscope-find-global-definition-no-prompting)
-;;            (define-key java-mode-map ","  'cscope-pop-mark)
-;;			(define-key java-mode-map (kbd "C-c n") 'ecb-nav-goto-next)
-;;			(define-key java-mode-map (kbd "C-c p") 'ecb-nav-goto-previous)
-;;            ))
-;;
 
 (add-hook 'c-mode-common-hook 
           (lambda ()
             ;;			(define-key c++-mode-map [(control c) t]  'imenu-tree-window-weight)
-            (define-key c++-mode-map "." 'gtags-find-tag-from-here)
-            (define-key c++-mode-map ","  'gtags-pop-stack)
-            (define-key c++-mode-map (kbd "C-c s c") 'gtags-find-rtag)
-            (define-key c++-mode-map (kbd "C-c s s") 'gtags-find-symbol)
-            (define-key c++-mode-map (kbd "C-c s g") 'gtags-find-with-grep)
-            (define-key c++-mode-map (kbd "C-c s o") 'gtags-find-tag-other-window)
-            (define-key c++-mode-map (kbd "C-c s p") 'gtags-find-pattern)
-            (define-key c++-mode-map (kbd "C-c s f") 'gtags-find-file)
-            (define-key c-mode-map "." 'gtags-find-tag-from-here)
-            (define-key c-mode-map ","  'gtags-pop-stack)
-            (define-key c-mode-map (kbd "C-c s c") 'gtags-find-rtag)
-            (define-key c-mode-map (kbd "C-c s s") 'gtags-find-symbol)
-            (define-key c-mode-map (kbd "C-c s g") 'gtags-find-with-grep)
-            (define-key c-mode-map (kbd "C-c s o") 'gtags-find-tag-other-window)
-            (define-key c-mode-map (kbd "C-c s p") 'gtags-find-pattern)
-            (define-key c-mode-map (kbd "C-c s f") 'gtags-find-file)
-            (define-key java-mode-map "." 'gtags-find-tag-from-here)
-            (define-key java-mode-map ","  'gtags-pop-stack)
-            (define-key java-mode-map (kbd "C-c s c") 'gtags-find-rtag)
-            (define-key java-mode-map (kbd "C-c s s") 'gtags-find-symbol)
-            (define-key java-mode-map (kbd "C-c s g") 'gtags-find-with-grep)
-            (define-key java-mode-map (kbd "C-c s o") 'gtags-find-tag-other-window)
-            (define-key java-mode-map (kbd "C-c s p") 'gtags-find-pattern)
-            (define-key java-mode-map (kbd "C-c s f") 'gtags-find-file)
+            (define-key c++-mode-map "." 'ggtags-find-definition)
+            (define-key c++-mode-map ","  'my-gtags-pop-history)
+            (define-key c++-mode-map (kbd "C-c s c") 'ggtags-find-reference)
+            (define-key c++-mode-map (kbd "C-c s g") 'ggtags-find-tag-dwim)
+            (define-key c++-mode-map (kbd "C-c s f") 'ggtags-find-file)
+            (define-key c-mode-map "." 'ggtags-find-definition)
+            (define-key c-mode-map ","  'my-gtags-pop-history)
+            (define-key c-mode-map (kbd "C-c s c") 'ggtags-find-reference)
+            (define-key c-mode-map (kbd "C-c s g") 'ggtags-find-tag-dwim)
+            (define-key c-mode-map (kbd "C-c s f") 'ggtags-find-file)
+            (define-key java-mode-map "." ''ggtags-find-definition)
+            (define-key java-mode-map ","  'my-gtags-pop-history)
+            (define-key java-mode-map (kbd "C-c s c") 'ggtags-find-reference)
+            (define-key java-mode-map (kbd "C-c s g") 'ggtags-find-tag-dwim)
+            (define-key java-mode-map (kbd "C-c s f") 'ggtags-find-file)
             ))
 
 (define-key gtags-select-mode-map "\^?" 'scroll-down)
@@ -632,6 +510,16 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (define-key gtags-select-mode-map "\C-m" 'gtags-select-tag)
 (define-key gtags-select-mode-map "\e." 'gtags-select-tag)
 
+(defun my/python-mode-lsp-keybindings ()
+  "为 python-mode 绑定常用 lsp 快捷键."
+  (local-set-key (kbd "M-.") #'lsp-find-definition)     ;; 跳转到定义
+  (local-set-key (kbd "M-?") #'lsp-find-references)     ;; 查找引用
+  (local-set-key (kbd "C-c r") #'lsp-rename)            ;; 重命名符号
+  (local-set-key (kbd "M-,") #'xref-pop-marker-stack))  ;; 返回上一个点
+
+(add-hook 'python-mode-hook #'my/python-mode-lsp-keybindings)
+
+
 (require 'man)
 (define-key Man-mode-map "j" 'next-line)
 (define-key Man-mode-map "k" 'previous-line)
@@ -649,47 +537,42 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (define-key occur-mode-map "s" 'isearch-forward)
 (define-key occur-mode-map "r" 'isearch-backward)
 
-;;(require 'google-c-style)
+(require 'google-c-style)
 ;;(add-hook 'c-mode-common-hook 'google-set-c-style)
 
 ;;(setq cscope-do-not-update-database t)
 ;; Toggle window dedication
 
 (defun toggle-window-dedicated ()
-
   "Toggle whether the current active window is dedicated or not"
-
   (interactive)
-
   (message 
-
    (if (let (window (get-buffer-window (current-buffer)))
-
          (set-window-dedicated-p window 
-
                                  (not (window-dedicated-p window))))
-
        "Window '%s' is dedicated"
-
      "Window '%s' is normal")
-
    (current-buffer)))
 
 (global-set-key [pause] 'toggle-window-dedicated)
 ;;for non-window base terminal
 (global-set-key (kbd "C-c d") 'toggle-window-dedicated)
 
-(require 'my-deep-blue)
-(my-deep-blue)
+;;(require 'my-deep-blue)
+;;(my-deep-blue)
+
+;(require 'doom-themes) ;; 加载 Doom Themes
+;(load-theme 'doom-nord t)
+;(load-theme 'doom-one t)
+(load-theme 'doom-badger t)
+;;(load-theme 'doom-monokai-pro t)
+;;(load-theme 'doom-gruvbox t)
+;;(load-theme 'doom-vibrant t)
+;;(load-theme 'doom-molokai t)
 
 ;;(require 'my-light-blue)
 ;;(my-light-blue)
 
-;;(require 'my-deep-blue3)
-;;(my-deep-blue3)
-
-;;(require 'color-theme-mnmlst)
-;;(color-theme-mnmlst)
 
 (server-start)
 
@@ -701,7 +584,7 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (setq browse-kill-ring-display-duplicates nil)
 (add-hook 'browse-kill-ring-hook 'browse-kill-ring-my-keys)
 (defun browse-kill-ring-my-keys ()
-  (define-key browse-kill-ring-mode-map (kbd "RET") 'browse-kill-ring-insert-and-quit-rdonly)
+  (define-key browse-kill-ring-mode-map (kbd "RET") 'browse-kill-ring-insert-and-quit)
   (define-key browse-kill-ring-mode-map "<" 'beginning-of-buffer)
   (define-key browse-kill-ring-mode-map ">" 'end-of-buffer)
   (define-key browse-kill-ring-mode-map "j" 'next-line)
@@ -759,6 +642,9 @@ If ARG is non-numeric, copy line from beginning of the current line."
 (define-key  isearch-mode-map (kbd "M-u") 'isearch-toggle-word)
 (define-key  isearch-mode-map (kbd "M-h") 'isearch-del-char)
 
+
+(define-key java-mode-map (kbd "M-j") 'windmove-down)
+
 (defun isearch-clean ()
   "Clean string in `iserch-mode'."
   (interactive)
@@ -798,11 +684,15 @@ If ARG is non-numeric, copy line from beginning of the current line."
     (define-key map "l" 'forward-char)
     (define-key map "j" 'next-line)
     (define-key map "k" 'previous-line)
+    ;;(define-key map "s" 'consult-line)
     ;;(define-key map "J" 'scroll-down)
     ;;(define-key map "K" 'scroll-up)
-    (define-key map "J" 'goto-line)
-    (define-key map "K" 'ido-kill-buffer)
+    ;;(define-key map "J" 'goto-line)
+    ;;(define-key map "K" 'ido-kill-buffer)
+    (define-key map "J" 'hold-line-scroll-up)
+    (define-key map "K" 'hold-line-scroll-down)
     (define-key map "b" 'backward-word)
+    (define-key map "B" 'iswitchb-buffer)
     (define-key map "w" 'forward-word)
     (define-key map "y" 'copy-region-as-kill-nomark)
     (define-key map "c" 'copy-region-as-kill-nomark)
@@ -818,14 +708,14 @@ If ARG is non-numeric, copy line from beginning of the current line."
     (define-key map "2" 'split-window-vertically)
     (define-key map "3" 'split-window-horizontally)
     (define-key map "0" 'delete-window)
-    (define-key map "i" 'imenu)
-    (define-key map "." 'gtags-find-tag-from-here)
-    (define-key map ","  'gtags-pop-stack)
+    (define-key map "i" 'consult-imenu)
+    ;;(define-key map "." 'ggtags-find-definition)
+    ;;(define-key map ","  'my-gtags-pop-history)
     (define-key map (kbd "M-a") 'beginning-of-defun)
     (define-key map (kbd "M-e") 'end-of-defun)
     (define-key map (kbd "C-k") 'View-scroll-line-backward)
-    (define-key map (kbd "M-f") 'forward-sexp)
-    (define-key map (kbd "M-b") 'backward-sexp)
+    (define-key map (kbd "M-f") 'forward-word)
+    (define-key map (kbd "M-b") 'backward-word)
     (define-key map "f" 'forward-sexp)
     (define-key map "F" 'backward-sexp)
     ))
@@ -840,71 +730,170 @@ If ARG is non-numeric, copy line from beginning of the current line."
 
 (require 'uniquify)
 
-(require 'auto-complete-config)
-;;(add-to-list 'ac-dictionary-directories "/home/denny/share/emacs/site-lisp/ac-dict")
-;;(ac-config-default)
-;;
-;;    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
-;;;; Auto complete  
-;;    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;  
-;;(when (require 'auto-complete nil t)  
-;;  ;;(require 'auto-complete-extension nil t) ;optional  
-;;  ;;(require 'auto-complete-yasnippet nil t) ;optional  
-;;  ;;(require 'auto-complete-semantic nil t)  ;optional  
-;;  (require 'auto-complete-gtags nil t)     ;optional  
-;;  ;;(require 'auto-complete-cpp)  
-;;  ;;(ac-c++-init)  
-;;  ;;(require 'auto-complete-emacs-lisp)  
-;;  ;;(ac-emacs-lisp-init)  
-;;  ;;(require 'auto-complete-python)  
-;;  ;;(ac-ropemacs-init)  
-;;  ;;(require 'auto-complete-ruby)  
-;;  ;;(ac-ruby-init)  
-;;  ;;(require 'auto-complete-css)  
-;;  ;;(ac-css-init)  
-;;  ;;(require 'ac-anything)  
-;;  ;;(define-key ac-complete-mode-map (kbd "C-:") 'ac-complete-with-anything)  
-;;  (setq-default ac-sources '(ac-source-imenu  
-;;                             ac-source-abbrev  
-;;                             ac-source-words-in-buffer  
-;;                             ac-source-files-in-current-dir  
-;;                             ac-source-filename))  
-;;  (global-auto-complete-mode t)  
-;;  ;;(define-key ac-complete-mode-map "/t" 'ac-expand)  
-;;  ;;(define-key ac-complete-mode-map "/r" 'ac-complete)  
-;;  ;;(define-key ac-complete-mode-map "/M-n" 'ac-next)  
-;;  ;;(define-key ac-complete-mode-map "/M-p" 'ac-previous)  
-;;  (setq ac-auto-start 1)  
-;;  ;;(global-set-key "/M-/" 'ac-start)  
-;;  ;;(define-key ac-complete-mode-map "/M-/" 'ac-stop)  
-;;  ;;(setq ac-dwim t)  
-;;  ;;(setq ac-override-local-map nil)        ;don't override local map  
-;;  ;; Enables omnicompletion with `c-mode-common'.  
-;;  (add-hook 'c-mode-common-hook  
-;;            '(lambda ()  
-;;               (add-to-list 'ac-omni-completion-sources  
-;;                            (cons "//." '(ac-source-semantic)))  
-;;               (add-to-list 'ac-omni-completion-sources  
-;;                            (cons "->" '(ac-source-semantic)))  
-;;               (add-to-list 'ac-sources 'ac-source-gtags)))  
-;;  )
-(custom-set-faces
-  ;; custom-set-faces was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "#020c16" :foreground "#fff" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 98 :width normal :foundry "unknown" :family "Ubuntu Mono")))))
-;;(require 'powerline)
-;;(require 'sml-modeline)
-;;(sml-modeline-mode 1)
 
-               
-;;(defun toggle-fullscreen ()
-;;  (interactive)
-;;  (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
-;;                         '(2 "_NET_WM_STATE_MAXIMIZED_VERT" 0))
-;;  (x-send-client-message nil 0 nil "_NET_WM_STATE" 32
-;;                         '(2 "_NET_WM_STATE_MAXIMIZED_HORZ" 0))
-;;  )
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(default ((t (:family "Hack" :foundry "SRC" :slant normal :weight regular :height 120 :width normal))))
+ '(isearch ((t (:background "yellow" :foreground "black"))))
+ '(lazy-highlight ((t (:background "orange" :foreground "black")))))
+  ; 其他匹配项
+
+
+(require 'package)
+
+;; If you want to use latest version
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+
+;; If you want to use last tagged version
+(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/"))
+;;(package-initialize)
+
+(add-to-list 'web-mode-ac-sources-alist
+             '("html" . (ac-source-html-tag
+                         ac-source-html-attr
+                         ac-source-html-attrv)))
+
+
+(electric-pair-mode t)
+
+(require 'package)
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (proto (if no-ssl "http" "https")))
+  ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
+  (add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+  ;;(add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
+  (when (< emacs-major-version 24)
+    ;; For important compatibility libraries like cl-lib
+    (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/")))))
+(package-initialize)
+
+(setq confirm-kill-emacs 'yes-or-no-p)
+;;(global-display-line-numbers-mode t)
+
+;; 安装并启用 Vertico
+(use-package vertico
+  :ensure t
+  :init
+  (vertico-mode 1))
+
+;; 安装并启用 Orderless（模糊匹配）
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless)))
+
+;; 安装并启用 Marginalia（显示补全项附加信息）
+;;(use-package marginalia
+;;  :ensure t
+;;  :init
+;;  (marginalia-mode 1))
+
+;;(use-package consult
+;;  :ensure t
+;;  :bind (("C-c c" . consult-line)))
 ;;
-;;(toggle-fullscreen)
+;;(defun consult-line-at-point ()
+;;  "使用 `consult-line` 搜索光标下的单词。"
+;;  (interactive)
+;;  (let ((current-word (thing-at-point 'word t)))
+;;    (consult-line current-word)))
+;;(global-set-key (kbd "C-c l") 'consult-line-at-point)
+
+;;(defun consult-line-symbol-at-point ()
+;;  "Run `consult-line' with the symbol at point as the initial input."
+;;  (interactive)
+;;  (consult-line (thing-at-point 'symbol)))
+;;
+;;(global-set-key (kbd "C-s") 'consult-line-symbol-at-point)
+
+(use-package projectile
+  :ensure t
+  :init
+  (setq projectile-project-search-path '("~/code")) ;; 设置项目根目录
+  (setq projectile-enable-caching t) ;; 启用缓存
+  :bind-keymap
+  ("C-c p" . projectile-command-map) ;; 将所有 Projectile 命令绑定到 C-c p
+  :config
+  (projectile-mode +1) ;; 启动 projectile-mode
+  :hook (emacs-startup . projectile-discover-projects-in-search-path)) ;; 启动后自动扫描项目
+
+(setq projectile-project-root-files '(".projectile"))
+
+;;(use-package ggtags
+;;  :ensure t
+;;  :hook (prog-mode . ggtags-mode))
+
+(use-package ggtags
+  :ensure t
+  :hook ((c-mode c++-mode objc-mode) . ggtags-mode))
+
+;; 保存跳转位置
+(advice-add 'ggtags-find-tag-dwim :before
+            (lambda (&rest _args)
+              (my-gtags-push-history)))
+
+(advice-add 'ggtags-find-reference :before
+            (lambda (&rest _args)
+              (my-gtags-push-history)))
+
+(advice-add 'ggtags-find-definition :before
+            (lambda (&rest _)
+              (my-gtags-push-history)))
+
+(defvar my-gtags-jump-history nil "History of jump locations.")
+
+(defun my-gtags-push-history ()
+  "Save the current file and point to the jump history."
+  (let ((file-path (or (buffer-file-name) (dired-get-file-for-visit)))  ;; 文件路径
+        (position (point)))  ;; 光标位置
+    (push (list file-path position) my-gtags-jump-history)))
+
+(defun my-gtags-pop-history ()
+  "Return to the last jump location."
+  (interactive)
+  (let ((entry (pop my-gtags-jump-history)))  ;; 获取并移除跳转历史的最后一条记录
+    (when entry  ;; 如果历史记录不为空
+      (let ((file-path (car entry))  ;; 获取文件路径
+            (position (cadr entry)))  ;; 获取光标位置
+        (find-file file-path)  ;; 打开文件
+        (goto-char position)))))  ;; 跳转到光标位置
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
+
+;;(use-package smart-mode-line
+;;  :ensure t)
+;;(require 'smart-mode-line)
+;;
+;;;; Use a predefined theme (e.g., `dark`, `light`, or `respectful`)
+;;(setq sml/theme 'dark)
+;;
+;;;; Initialize smart-mode-line
+;;(sml/setup)
+(use-package markdown-mode
+  :ensure t
+  :mode ("\\.md\\'" "\\.markdown\\'")
+  :config
+  (setq markdown-command "multimarkdown"))
+
+;; used for vertico switch buffer highlight color issue
+(set-face-attribute 'completions-common-part nil
+                    :foreground "yellow"
+                    :background "black")
+
+(add-hook 'c-mode-common-hook
+          (lambda ()
+            (add-hook 'before-save-hook 'clang-format-buffer nil 'local)))
+
+(use-package doom-themes
+  :ensure t
+  :config
+  ;(load-theme 'doom-nord t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-org-config))
+

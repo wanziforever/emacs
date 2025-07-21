@@ -1,4 +1,3 @@
-(eval-when-compile    (require 'color-theme))
 (provide 'color-theme-mnmlst)
 (defun color-theme-mnmlst ()
   "a 'sublime' theme by mnmslt.me"

@@ -1,0 +1,20 @@
+(eval-when-compile    (require 'color-theme))
+(provide 'my-light-yellow)
+(defun my-light-yellow ()
+  (interactive)
+  (color-theme-install
+   '(my-light-yellow
+     ((background-color . white)
+      (background-mode . light)
+      (border-color . "#111")
+      (cursor-color . "yellow")
+      (foreground-color . black)
+      (mouse-color . "sienna1"))
+     (ido-first-match ((t (:foreground "black" :bold t :weight bold))))
+     (ido-incomplete-regexp ((t (:bold t :weight bold :foreground "yellow"))))
+     (ido-indicator ((t (:background "red1" :foreground "yellow1" :width condensed))))
+     (ido-only-match ((t (:foreground "ForestGreen"))))
+     (ido-subdir ((t (:foreground "red1"))))
+     (ido-subdir-face ((t (:foreground "red"))))
+     )))
+

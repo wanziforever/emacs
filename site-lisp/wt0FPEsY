@@ -1,0 +1,2 @@
+
+gzip: /var/log/wtmp.1.gz: unexpected end of file
