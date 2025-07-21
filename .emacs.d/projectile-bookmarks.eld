@@ -1,0 +1,1 @@
+("~/code/chia/chia_rs/" "~/code/chia/chia-blockchain/" "~/code/sui/" "~/code/solana/" "~/code/go-ethereum/" "~/code/bitcoin/" "~/code/chia/chiapos/" "~/code/chia/chia-gaming/" "~/code/postgres/" "~/code/dbt-core/" "~/code/cloudberrydb/")

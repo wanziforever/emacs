@@ -1,0 +1,31 @@
+cd code
+ls
+cd postgresql-17.2/
+ls
+cd ../..
+ls
+cd ..
+cd ../..
+cd ..
+cd 
+ls
+cd test
+ls
+mkdir test
+cd code
+ls
+cd chia-blockchain/
+cd code
+ls
+cd all_postgres/
+ls
+cd postgres
+find . -name "*.py"
+cd ..
+cd ..
+gtags
+ls
+cd ..
+cd ..
+cd ..
+cd ..

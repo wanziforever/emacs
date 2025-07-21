@@ -1,0 +1,8 @@
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/planner.c
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/#planner.c#
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/setrefs.c
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/#setrefs.c#
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/subselect.c
+/home/denny/code/postgresql-17.2/src/backend/optimizer/plan/#subselect.c#
+/home/denny/code/postgresql-17.2/src/backend/tcop/postgres.c
+/home/denny/code/postgresql-17.2/src/backend/tcop/#postgres.c#
